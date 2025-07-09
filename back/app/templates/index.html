@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechMatch - Smart Resume Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #6b73ff 0%, #000dff 100%);
+        }
+        .resume-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        .file-upload {
+            border: 2px dashed #ccc;
+            transition: all 0.3s ease;
+        }
+        .file-upload:hover {
+            border-color: #4f46e5;
+            background-color: #f8f9fa;
+        }
+        .file-upload.dragover {
+            border-color: #4f46e5;
+            background-color: #eef2ff;
+        }
+        .summary-chip {
+            background-color: #e0e7ff;
+            color: #4f46e5;
+        }
+        .login-modal {
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-file-alt text-2xl"></i>
+                <span class="text-xl font-bold">TechMatch</span>
+            </div>
+            <div class="hidden md:flex space-x-6">
+                <a href="#" class="hover:text-gray-200 transition">Home</a>
+                <a href="#upload" class="hover:text-gray-200 transition">Upload Resume</a>
+                <a href="#" class="hover:text-gray-200 transition">About</a>
+                <button id="adminLoginBtn" class="bg-white text-indigo-600 px-4 py-1 rounded-full font-medium hover:bg-gray-100 transition">Admin Login</button>
+            </div>
+            <button class="md:hidden text-2xl" id="mobileMenuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobileMenu" class="hidden md:hidden bg-indigo-800 px-4 py-2">
+            <div class="flex flex-col space-y-2">
+                <a href="#" class="text-white hover:bg-indigo-700 px-2 py-1 rounded">Home</a>
+                <a href="#upload" class="text-white hover:bg-indigo-700 px-2 py-1 rounded">Upload Resume</a>
+                <a href="#" class="text-white hover:bg-indigo-700 px-2 py-1 rounded">About</a>
+                <button id="adminLoginBtnMobile" class="bg-white text-indigo-600 px-4 py-1 rounded-full font-medium hover:bg-gray-100 transition w-full text-left">Admin Login</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="gradient-bg text-white py-16 md:py-24">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-6">Smart Resume Management</h1>
+            <p class="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">Upload your resume and let our AI extract key insights for recruiters and hiring managers.</p>
+            <a href="#upload" class="bg-white text-indigo-600 px-8 py-3 rounded-full font-bold text-lg hover:bg-gray-100 transition inline-block">Upload Your Resume</a>
+        </div>
+    </section>
+
+    <!-- Upload Section -->
+    <section id="upload" class="py-16 bg-white">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12 text-gray-800">Submit Your Resume</h2>
+            <div class="max-w-4xl mx-auto bg-gray-50 rounded-xl p-8 shadow-md">
+                <div id="fileUploadContainer" class="file-upload rounded-lg p-8 text-center cursor-pointer transition">
+                    <i class="fas fa-cloud-upload-alt text-5xl text-indigo-500 mb-4"></i>
+                    <h3 class="text-xl font-semibold mb-2 text-gray-700">Drag & Drop Your Resume Here</h3>
+                    <p class="text-gray-500 mb-6">Supported formats: PDF, JPG, PNG (Max 5MB)</p>
+                    <label for="resumeFile" class="bg-indigo-600 text-white px-6 py-2 rounded-full font-medium hover:bg-indigo-700 transition inline-block cursor-pointer">
+                        <i class="fas fa-file-import mr-2"></i> Browse Files
+                    </label>
+                    <input type="file" id="resumeFile" class="hidden" accept=".pdf,.jpg,.jpeg,.png">
+                </div>
+                <div id="fileInfo" class="hidden mt-6 p-4 bg-indigo-50 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <i class="fas fa-file-alt text-indigo-600 text-2xl mr-3"></i>
+                            <div>
+                                <p id="fileName" class="font-medium text-gray-800">filename.pdf</p>
+                                <p id="fileSize" class="text-sm text-gray-500">2.4 MB</p>
+                            </div>
+                        </div>
+                        <button id="removeFileBtn" class="text-red-500 hover:text-red-700">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <form id="resumeForm" class="mt-8">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="name" class="block text-gray-700 font-medium mb-2">Full Name</label>
+                            <input type="text" id="name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                        </div>
+                        <div>
+                            <label for="email" class="block text-gray-700 font-medium mb-2">Email Address</label>
+                            <input type="email" id="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                        </div>
+                    </div>
+                    <div class="mt-6">
+                        <label for="notes" class="block text-gray-700 font-medium mb-2">Additional Notes (Optional)</label>
+                        <textarea id="notes" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                    </div>
+                    <div class="mt-8 text-center">
+                        <button type="submit" class="bg-indigo-600 text-white px-8 py-3 rounded-full font-bold hover:bg-indigo-700 transition">
+                            <i class="fas fa-paper-plane mr-2"></i> Submit Resume
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white rounded-xl p-8 max-w-4xl mx-4 text-center">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-check text-green-500 text-2xl"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-800 mb-2">Success!</h3>
+            <p class="text-gray-600 mb-4">Your resume has been submitted successfully.</p>
+            <div class="bg-gray-50 p-4 rounded-lg mb-6 text-left">
+                <h4 class="font-bold text-gray-700 mb-2">Resume Summary:</h4>
+                <p id="resumeSummary" class="text-gray-600 whitespace-pre-line"></p>
+            </div>
+            <button id="closeSuccessModal" class="bg-indigo-600 text-white px-6 py-2 rounded-full font-medium hover:bg-indigo-700 transition">Close</button>
+        </div>
+    </div>
+
+    <!-- Admin Login Modal -->
+    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="login-modal bg-white rounded-xl p-8 max-w-md w-full mx-4">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">Admin Login</h3>
+                <button id="closeLoginModal" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="loginForm">
+                <div class="mb-4">
+                    <label for="adminEmail" class="block text-gray-700 font-medium mb-2">Email</label>
+                    <input type="email" id="adminEmail" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                </div>
+                <div class="mb-6">
+                    <label for="adminPassword" class="block text-gray-700 font-medium mb-2">Password</label>
+                    <input type="password" id="adminPassword" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700 transition">
+                    <i class="fas fa-lock mr-2"></i> Login
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard (Hidden by default) -->
+    <div id="adminDashboard" class="hidden">
+        <!-- Admin Header -->
+        <div class="bg-gray-800 text-white py-4 px-6 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-user-shield text-xl"></i>
+                <span class="text-xl font-bold">Admin Dashboard</span>
+            </div>
+            <button id="logoutBtn" class="bg-red-500 text-white px-4 py-1 rounded-full font-medium hover:bg-red-600 transition">Logout</button>
+        </div>
+
+        <!-- Admin Content -->
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-2xl font-bold text-gray-800">Resume Submissions</h2>
+                <div class="flex space-x-4">
+                    <div class="relative">
+                        <input type="text" placeholder="Search resumes..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                    </div>
+                    <select class="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        <option>All</option>
+                        <option>Recent</option>
+                        <option>By Date</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Resume Cards -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Resume Card 1 -->
+                <div class="resume-card bg-white rounded-xl shadow-md overflow-hidden transition">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800">John Doe</h3>
+                                <p class="text-indigo-600 font-medium">Software Engineer</p>
+                            </div>
+                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">New</span>
+                        </div>
+                        <div class="flex space-x-2 mb-4">
+                            <span class="summary-chip px-2 py-1 text-sm rounded-full">5+ years experience</span>
+                            <span class="summary-chip px-2 py-1 text-sm rounded-full">React, Node.js</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">Senior full-stack developer with expertise in JavaScript frameworks and cloud architecture. Previously at Google and Amazon.</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-500">Submitted: 2 days ago</span>
+                            <div class="flex space-x-2">
+                                <button class="text-indigo-600 hover:text-indigo-800">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="text-green-600 hover:text-green-800">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                                <button class="text-red-600 hover:text-red-800">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resume Card 2 -->
+                <div class="resume-card bg-white rounded-xl shadow-md overflow-hidden transition">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800">Sarah Johnson</h3>
+                                <p class="text-indigo-600 font-medium">Marketing Director</p>
+                            </div>
+                            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Viewed</span>
+                        </div>
+                        <div class="flex space-x-2 mb-4">
+                            <span class="summary-chip px-2 py-1 text-sm rounded-full">8 years experience</span>
+                            <span class="summary-chip px-2 py-1 text-sm rounded-full">Digital Marketing</span>
+                            <span class="summary-chip px-2 py-1 text-sm rounded-full">SEO/SEM</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">Marketing professional with proven track record in digital campaigns and brand strategy. MBA from Harvard Business School.</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-500">Submitted: 1 week ago</span>
+                            <div class="flex space-x-2">
+                                <button class="text-indigo-600 hover:text-indigo-800">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="text-green-600 hover:text-green-800">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                                <button class="text-red-600 hover:text-red-800">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resume Card 3 -->
+                <div class="resume-card bg-white rounded-xl shadow-md overflow-hidden transition">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800">Michael Chen</h3>
+                                <p class="text-indigo-600 font-medium">Data Scientist</p>
+                            </div>
+                            <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">Pending</span>
+                        </div>
+                        <div class="flex space-x-2 mb-4">
+                            <span class="summary-chip px-2 py-1 text-sm rounded-full">PhD in CS</span>
+                            <span class="summary-chip px-2 py-1 text-sm rounded-full">Machine Learning</span>
+                            <span class="summary-chip px-2 py-1 text-sm rounded-full">Python, R</span>
+                        </div>
+                        <p class="text-gray-600 mb-4">Data science expert specializing in predictive modeling and natural language processing. Published 12 research papers.</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-500">Submitted: 3 days ago</span>
+                            <div class="flex space-x-2">
+                                <button class="text-indigo-600 hover:text-indigo-800">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="text-green-600 hover:text-green-800">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                                <button class="text-red-600 hover:text-red-800">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <div class="mt-8 flex justify-center">
+                <nav class="flex items-center space-x-2">
+                    <button class="px-3 py-1 rounded border border-gray-300 text-gray-500 hover:bg-gray-100">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="px-3 py-1 rounded bg-indigo-600 text-white">1</button>
+                    <button class="px-3 py-1 rounded border border-gray-300 hover:bg-gray-100">2</button>
+                    <button class="px-3 py-1 rounded border border-gray-300 hover:bg-gray-100">3</button>
+                    <button class="px-3 py-1 rounded border border-gray-300 text-gray-500 hover:bg-gray-100">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">TechMatch</h3>
+                    <p class="text-gray-400">Smart resume management system powered by AI to streamline your hiring process.</p>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Home</a></li>
+                        <li><a href="#upload" class="text-gray-400 hover:text-white transition">Upload Resume</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Privacy Policy</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Terms of Service</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">Contact</h4>
+                    <ul class="space-y-2">
+                        <li class="flex items-center">
+                            <i class="fas fa-envelope mr-2 text-gray-400"></i>
+                            <span class="text-gray-400">fabio@TechMatch.com</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-phone mr-2 text-gray-400"></i>
+                            <span class="text-gray-400">(+55) XXXX-7890</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-map-marker-alt mr-2 text-gray-400"></i>
+                            <span class="text-gray-400">São Paulo, SP</span>
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">Follow Us</h4>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition text-xl">
+                            <i class="fab fa-facebook"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition text-xl">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition text-xl">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition text-xl">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2023 TechMatch. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        document.getElementById('mobileMenuBtn').addEventListener('click', function() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('hidden');
+        });
+
+        // File upload handling
+        const fileUploadContainer = document.getElementById('fileUploadContainer');
+        const fileInput = document.getElementById('resumeFile');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const removeFileBtn = document.getElementById('removeFileBtn');
+
+        // Drag and drop events
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            fileUploadContainer.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            fileUploadContainer.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            fileUploadContainer.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight() {
+            fileUploadContainer.classList.add('dragover');
+        }
+
+        function unhighlight() {
+            fileUploadContainer.classList.remove('dragover');
+        }
+
+        fileUploadContainer.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        fileInput.addEventListener('change', function() {
+            handleFiles(this.files);
+        });
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                const validTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+                
+                if (!validTypes.includes(file.type)) {
+                    alert('Please upload a PDF, JPG, or PNG file.');
+                    return;
+                }
+                
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File size exceeds 5MB limit.');
+                    return;
+                }
+                
+                fileName.textContent = file.name;
+                fileSize.textContent = formatFileSize(file.size);
+                fileInfo.classList.remove('hidden');
+            }
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        removeFileBtn.addEventListener('click', function() {
+            fileInput.value = '';
+            fileInfo.classList.add('hidden');
+        });
+
+        // Form submission
+        document.getElementById('resumeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!fileInput.files.length) {
+                alert('Please upload your resume file.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('name', document.getElementById('name').value);
+            formData.append('email', document.getElementById('email').value);
+            formData.append('notes', document.getElementById('notes').value);
+
+            fetch('https://techmatch.public.metaespace.com:4443/api/v1/resumes/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Success:', data);
+                const successModal = document.getElementById('successModal');
+                successModal.classList.remove('hidden');
+                document.getElementById('resumeSummary').textContent = data.summary;
+                //this.reset();
+                fileInfo.classList.add('hidden');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('There was an error submitting your resume. Please try again.');
+            });
+        });
+
+        // Modal handling
+        const adminLoginBtn = document.getElementById('adminLoginBtn');
+        const adminLoginBtnMobile = document.getElementById('adminLoginBtnMobile');
+        const loginModal = document.getElementById('loginModal');
+        const closeLoginModal = document.getElementById('closeLoginModal');
+        const loginForm = document.getElementById('loginForm');
+        const closeSuccessModal = document.getElementById('closeSuccessModal');
+        const successModal = document.getElementById('successModal');
+        const adminDashboard = document.getElementById('adminDashboard');
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        adminLoginBtn.addEventListener('click', function() {
+            loginModal.classList.remove('hidden');
+        });
+
+        adminLoginBtnMobile.addEventListener('click', function() {
+            document.getElementById('mobileMenu').classList.add('hidden');
+            loginModal.classList.remove('hidden');
+        });
+
+        closeLoginModal.addEventListener('click', function() {
+            loginModal.classList.add('hidden');
+        });
+
+        closeSuccessModal.addEventListener('click', function() {
+            successModal.classList.add('hidden');
+        });
+
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('adminEmail').value;
+            const password = document.getElementById('adminPassword').value;
+            
+            // Simple validation (in a real app, you would authenticate with a backend)
+            if (email === 'fabio@techmatch.com' && password === 'fabio123') {
+                loginModal.classList.add('hidden');
+                adminDashboard.classList.remove('hidden');
+                
+                // Hide main content
+                document.querySelector('nav').classList.add('hidden');
+                document.querySelectorAll('section').forEach(section => {
+                    section.classList.add('hidden');
+                });
+                document.querySelector('footer').classList.add('hidden');
+                
+                // Clear form
+                this.reset();
+            } else {
+                alert('Credenciais inválidas. Tente fabio@techmatch.com / fabio123');
+            }
+        });
+
+        logoutBtn.addEventListener('click', function() {
+            adminDashboard.classList.add('hidden');
+            
+            // Show main content
+            document.querySelector('nav').classList.remove('hidden');
+            document.querySelectorAll('section').forEach(section => {
+                section.classList.remove('hidden');
+            });
+            document.querySelector('footer').classList.remove('hidden');
+        });
+
+        // Close modals when clicking outside
+        [loginModal, successModal].forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.classList.add('hidden');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+curl http://10.1.0.3:9000/v1/completions \
+    -H "Content-Type: application/json" \
+    -d '{
+        "model": " ",
+        "prompt": "San Francisco is a",
+        "max_tokens": 7,
+        "temperature": 0
+    }' 
+
+
+    curl http://vllm:8000/v1/completions \
+    -H "Content-Type: application/json" \
+    -d '{
+        "model": "microsoft/phi-2",
+        "prompt": "San Francisco is a",
+        "max_tokens": 7,
+        "temperature": 0
+    }' 
+
+
+
+
+    curl http://10.1.0.3:9000/v1/completions \
+    -H "Content-Type: application/json" \
+    -d '{
+        "model": "microsoft/phi-2",
+        "prompt": "San Francisco is a",
+        "max_tokens": 7,
+        "temperature": 0
+    }' 
+
+from app.resume_summarizer import *
+
+resume_text="""
+RICHARD WILLIAMS
+3665 Margaret Street, Houston, TX 47587 • RichardWilliams@gmail.com • (770) 625-9669
+Financial Advisor with 7+ years of experience delivering financial/investment advisory services to high value clients.
+Proven success in managing multi-million dollar portfolios, driving profitability, and increasing ROI through skilful
+strategic planning, consulting, and financial advisory services.
+Professional Experience
+Senior Financial Advisor
+WELLS FARGO ADVISORS, Houston, TX
+August 2020–Present
+•Deliver financial advice to clients, proposing strategies to achieve short- and long-term objectives for
+investments, insurance, business and estate planning with minimal risk
+•Develop, review, and optimize investment portfolios for 300+ high value clients with over $190M AUM (Assets
+Under Management)
+•Ensure maximum client satisfaction by providing exceptional and personalized service, enhancing client
+satisfaction ratings from 88% to 99.9% in less than 6 months
+•Work closely with specialists from multiple branches, managing investment portfolios for over 800 clients
+with over $25M in assets under care
+Financial Advisor
+SUNTRUST INVESTMENT SERVICES, INC., New Orleans, LA
+July 2017–August 2020
+•Served as knowledgeable financial advisor to clients, managing an over $20.75M investment portfolio of 90+
+individual and corporate clients
+•Devised and applied a new training and accountability program that increased productivity from #10 to #3 in
+the region in less than 2 year period
+•Partnered with cross-functional teams in consulting with clients to provide asset management risk strategy
+and mitigation, which increased AUM by 50%
+Financial Advisor
+MAVERICK CAPITAL MANAGEMENT, New Orleans, LA
+July 2014–August 2017
+•Served as the primary point of contact for over 15 clients
+•Managed the portfolios of several major clients with over $8.5M in total assets
+"""
+
+query = """
+Qual desses currículos se enquadra melhor para a vaga de Engenheiro de Software com esses requisitos: Python, React, AWS, GCP, Terraform
+"""
+
+rate_query_on_resume(resume_text, query)
